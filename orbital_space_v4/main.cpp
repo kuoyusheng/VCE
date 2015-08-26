@@ -799,8 +799,9 @@ int main() {
 //
     int array[12]={};
     for (int i=0,u=0; i<no_of_sym; i++) {
-        if (clu_sym[2][i].isotromy==10) {
+        if (clu_sym[2][i].isotromy==2) {
             array[u]=i;
+            cout<<i<<"\t";
             u++;
         }
     }cout<<endl;
@@ -812,7 +813,7 @@ int main() {
             clu_sym[ver][i].imp_gamma_cal();
         }
     }
-    isotromy_gamma(clu_sym[3], array, 4);
+    isotromy_gamma(clu_sym[2], array, 12);
 //    for (int i=0; i<4*27; i++) {
 //        for (int j=0; j<27; j++) {
 //            cout<<clu_sym[3][10].gamma[i*27+j]<<"\t";
@@ -825,19 +826,23 @@ int main() {
 //        }cout<<endl;
 //    }
 //    cout<<endl;
-    double* ver=new double[27*27*4];
-    int tot=27*27*4;
+    
+    
+    double* ver=new double[12*9*9];
+    int tot=12*9*9;
     for (int i=0; i<tot; i++) {
-        ver[i]=clu_sym[2][10].gamma[i];
+        ver[i]=clu_sym[2][2].gamma[i];
     }
-    double* b_out=new double[27*27*4];
-    int col=nullspace(27*4, 27, ver, b_out);
+    double* b_out=new double[12*9*9];
+    int col=nullspace(12*9, 9, ver, b_out);
     cout<<col<<endl;
     for (int i=0; i<27*4; i++) {
         for (int j=0;j<col; j++) {
             cout<<b_out[i*col+j]<<"\t";
         }cout<<endl;
     }
+    
+    
 ////
 //    for (int i=0; i<clu_num[3]*48; i++) {
 //        if(clu_sym[3][i].imp){
