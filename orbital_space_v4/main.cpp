@@ -544,8 +544,13 @@ void isotromy_gamma(Cluster* clu_sym, int* arr, int no_of_os){
     int tot=(no_of_os*tensor_dim)*tensor_dim;
     float* temp=new float[tot];
     for (int i=0,u=0; i<no_of_os; i++) {
-        for(int j=0;j<tensor_dim*tensor_dim;j++,u++){
-            temp[u]=clu_sym[arr[i]].gamma[j];
+        for(int j=0;j<tensor_dim;j++){
+            for(int k=0;k<tensor_dim;k++,u++){
+                temp[u]=clu_sym[arr[i]].gamma[j*tensor_dim+k];
+                if (j==k) {
+                    temp[u]--;
+                }
+            }
         }
     }
     clu_sym[arr[0]].gamma=new float[tot];
@@ -814,13 +819,21 @@ int main() {
 //        }cout<<endl;
 //    }
     
-    for (int i=0; i<27; i++) {
-        for (int j=0; j<27; j++) {
-            cout<<clu_sym[3][12].gamma[27*i+j]<<"\t";
+//    for (int i=0; i<27; i++) {
+//        for (int j=0; j<27; j++) {
+//            cout<<clu_sym[3][12].gamma[27*i+j]<<"\t";
+//        }cout<<endl;
+//    }
+//    cout<<endl;
+    double* b_out=new double[27*27*4];
+    int col=nullspace(27, 27*4, clu_sym[3][10].gamma, b_out);
+    cout<<col<<endl;
+    for (int i=0; i<27*27*4; i++) {
+        for (int j=0;j<col; j++) {
+            cout<<b_out[i*col+j]<<"\t";
         }cout<<endl;
     }
-    cout<<endl;
-//
+////
 //    for (int i=0; i<clu_num[3]*48; i++) {
 //        if(clu_sym[3][i].imp){
 //            for (int k=0; k<27; k++) {
