@@ -538,6 +538,23 @@ Cluster** clu_symmety(int no_of_ver,int no_of_sym, Cluster** clusters_rep, int *
     }
     return clu_sym;
 }
+void isotromy_gamma(Cluster* clu_sym, int* arr, int no_of_os){
+    int num=clu_sym[arr[0]].no_of_ver;
+    int tensor_dim=power(3, num);
+    int tot=(no_of_os*tensor_dim)*tensor_dim;
+    float* temp=new float[tot];
+    for (int i=0,u=0; i<no_of_os; i++) {
+        for(int j=0;j<tensor_dim*tensor_dim;j++,u++){
+            temp[u]=clu_sym[arr[i]].gamma[j];
+        }
+    }
+    clu_sym[arr[0]].gamma=new float[tot];
+    for (int i=0; i<tot; i++) {
+        clu_sym[arr[0]].gamma[i]=temp[i];
+    }
+    delete []temp;
+}
+
 
 int main() {
     ifstream sym("/Users/kuoyusheng/Desktop/sym1.out");
@@ -774,10 +791,12 @@ int main() {
     
     
 //
-//    
-    for (int i=0; i<no_of_sym; i++) {
-        if (clu_sym[3][i].isotromy==0) {
-            cout<<i<<"\t";
+//
+    int array[4]={};
+    for (int i=0,u=0; i<no_of_sym; i++) {
+        if (clu_sym[3][i].isotromy==10) {
+            array[u]=i;
+            u++;
         }
     }cout<<endl;
     cout<<clu_num[3]<<endl;
@@ -788,15 +807,20 @@ int main() {
             clu_sym[ver][i].imp_gamma_cal();
         }
     }
-    
-    
-//    for (int i=0; i<9; i++) {
-//        for (int j=0; j<9; j++) {
-//            cout<<clu_sym[2][0].gamma[9*i+j]<<"\t";
+    isotromy_gamma(clu_sym[3], array, 4);
+//    for (int i=0; i<4*27; i++) {
+//        for (int j=0; j<27; j++) {
+//            cout<<clu_sym[3][10].gamma[i*27+j]<<"\t";
 //        }cout<<endl;
 //    }
-//    cout<<endl;
-//    
+    
+    for (int i=0; i<27; i++) {
+        for (int j=0; j<27; j++) {
+            cout<<clu_sym[3][12].gamma[27*i+j]<<"\t";
+        }cout<<endl;
+    }
+    cout<<endl;
+//
 //    for (int i=0; i<clu_num[3]*48; i++) {
 //        if(clu_sym[3][i].imp){
 //            for (int k=0; k<27; k++) {
