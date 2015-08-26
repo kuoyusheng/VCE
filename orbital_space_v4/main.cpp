@@ -402,8 +402,8 @@ bool Cluster::compare_transl_dist(Cluster b){
         for (int i=0; i<no_of_ver; i++) {
             for (int j=0; j<dim; j++) {
                 distance[i][j]=clu_vertex[dim*pi[idx][i]+j]-b.clu_vertex[dim*i+j];
-                int test=distance[i][j];
-                if (distance[i][j]!=test)
+                int int_test=distance[i][j];
+                if (distance[i][j]!=int_test)
                     t=0;
             }
         }
@@ -797,9 +797,9 @@ int main() {
     
 //
 //
-    int array[4]={};
+    int array[12]={};
     for (int i=0,u=0; i<no_of_sym; i++) {
-        if (clu_sym[3][i].isotromy==10) {
+        if (clu_sym[2][i].isotromy==10) {
             array[u]=i;
             u++;
         }
@@ -825,10 +825,15 @@ int main() {
 //        }cout<<endl;
 //    }
 //    cout<<endl;
+    double* ver=new double[27*27*4];
+    int tot=27*27*4;
+    for (int i=0; i<tot; i++) {
+        ver[i]=clu_sym[2][10].gamma[i];
+    }
     double* b_out=new double[27*27*4];
-    int col=nullspace(27, 27*4, clu_sym[3][10].gamma, b_out);
+    int col=nullspace(27*4, 27, ver, b_out);
     cout<<col<<endl;
-    for (int i=0; i<27*27*4; i++) {
+    for (int i=0; i<27*4; i++) {
         for (int j=0;j<col; j++) {
             cout<<b_out[i*col+j]<<"\t";
         }cout<<endl;
