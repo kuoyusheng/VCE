@@ -294,7 +294,7 @@ int calc_nullspacebasis(Matrix mat, double *b_out) {
 int nullspace(int x_dim, int y_dim, double* v, double *b_out) {
     Matrix m = InitMatrix(x_dim, y_dim, v);
     MtxToReducedREForm(m);
-    MtxDisplay(m);
+    //MtxDisplay(m);
     int nfree = calc_nullspacebasis(m, b_out);
     FreeMatrix(m);
     return nfree;

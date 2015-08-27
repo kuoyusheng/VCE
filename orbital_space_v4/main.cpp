@@ -456,11 +456,25 @@ void find_orbital_space(Cluster* clu, int no_of_ver, int no_of_rep, int no_of_sy
                     else
                         clu[idx*no_of_sym+j].isotromy=clu[idx*no_of_sym+i].no_of_sym;
                     clu[idx*no_of_sym+j].no_of_os++;
+//                    for (int k=0; k<no_of_ver; k++) {
+//                        cout<<clu[idx*no_of_sym+j].permu[k]<<"\t";
+//                    }cout<<endl;
                 }
             }
         }
     }
-    
+}
+void find_isotromy_pi(Cluster* clu_rep,Cluster* clu_sym,int no_of_ver, int no_of_rep, int no_of_sym){
+    for (int idx=0,k=0; idx<no_of_rep; idx++,k=0) {
+        for (int i=0; i<no_of_sym; i++) {
+            if (clu_sym[idx*no_of_sym+i].compare_transl_dist(clu_rep[idx])) {
+//                for (int k=0; k<no_of_ver; k++) {
+//                    cout<<clu_sym[idx*no_of_sym+i].permu[k]<<'\t';
+//                }cout<<endl;
+//                k++;
+            }
+        }//cout<<k<<endl;
+    }
 }
 
 Cluster* imp_clu_enu(int no_of_imp,int no_of_ver,int no_of_rep, Cluster* clu_rep,int & tot){
@@ -610,11 +624,11 @@ void isotromy_gamma(Cluster* clu_sym, int no_of_sym, int tot_no, int id_idx){
                 clu_sym[clu+arr[0]].gamma[i]=temp_imp[i-tot];
             }
             delete[] temp_imp;
-            for (int i=0; i<row_imp; i++) {
-                for (int j=0; j<tensor_dim; j++) {
-                    cout<<clu_sym[clu+arr[0]].gamma[i*tensor_dim+j]<<"\t";
-                }cout<<endl;
-            }
+//            for (int i=0; i<row_imp; i++) {
+//                for (int j=0; j<tensor_dim; j++) {
+//                    cout<<clu_sym[clu+arr[0]].gamma[i*tensor_dim+j]<<"\t";
+//                }cout<<endl;
+//            }
         }
         else{
             clu_sym[clu+arr[0]].gamma=new float[tot];
@@ -917,7 +931,14 @@ int main() {
     cout<<"Find Orbital Space"<<endl;
     for (int ver=1; ver<=no_of_ver; ver++) {
         find_orbital_space(clu_sym[ver], ver, clu_num[ver], no_of_sym);
+        find_isotromy_pi(clusters_rep[ver], clu_sym[ver], ver, clu_num[ver], no_of_sym);
     }
+    
+    
+//    cout<<"Find isotromy permu"<<endl;
+//    for (int ver=1; ver<=no_of_ver; ver++) {
+//
+//    }
     
     
 //
@@ -937,22 +958,22 @@ int main() {
     
 //    cout<<clu_num[3]<<endl;
     cout<<"Find gamma conversion"<<endl;
-    for (int ver=1; ver<=no_of_ver; ver++) {
+    for (int ver=2; ver<=no_of_ver; ver++) {
         for (int i=0; i<clu_num[ver]*48; i++) {
             clu_sym[ver][i].gamma_cal(linear_tran);
             clu_sym[ver][i].imp_gamma_cal();
         }
     }
-    cout<<clu_sym[3][34*48].imp_ga_mulip<<endl;
-    for (int i=0; i<27*clu_sym[3][34*48].imp_ga_mulip; i++) {
-        for (int j=0; j<27; j++) {
-            cout<<clu_sym[3][34*48].imp_gamma[i*27+j]<<"\t";
-        }cout<<endl;
-    }
+//    cout<<clu_sym[3][34*48].imp_ga_mulip<<endl;
+//    for (int i=0; i<27*clu_sym[3][34*48].imp_ga_mulip; i++) {
+//        for (int j=0; j<27; j++) {
+//            cout<<clu_sym[3][34*48].imp_gamma[i*27+j]<<"\t";
+//        }cout<<endl;
+//    }
     
     cout<<"find reduced C"<<endl;;
     isotromy_gamma(clu_sym[3], no_of_sym, clu_num[3]*48, 10);
-    for (int i=34*48; i<clu_num[3]*48; i++) {
+    for (int i=33*48; i<clu_num[3]*48; i++) {
         if (clu_sym[3][i].rep) {
             cout<<i%48<<endl;
             clu_sym[3][i].find_red_fct();
