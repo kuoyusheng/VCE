@@ -137,25 +137,31 @@ public:
     void print_clu();
     void clu_sym_cal(Cluster a,int sym_no, float **linear_trans,float *transl);
     void clu_imp_enum(Cluster , int, int*);
+    void find_red_fct();
     void imp_gamma_cal();
     void gamma_cal(float ***linear_trans);
     int no_of_sym;
     int isotromy=0;
     int no_of_os=0;
+    int num_in_os=0;
     float *clu_vertex;
     int *permu;
     int no_of_ver;
     bool sym_distinctive;
     bool imp=false;
+    bool rep=false;
     int *imp_idx;
     float clu_dist=0;
     float* gamma;
     float* imp_gamma;
+    float* red_fct;
+    int imp_ga_mulip=0;
     
 private:
     static int dim;
     
 };
+
 void Cluster::imp_gamma_cal(){
     if (!imp) {
         return;
@@ -182,6 +188,7 @@ void Cluster::imp_gamma_cal(){
     }
 //    if(npt==3)
 //        cout<<k<<endl;
+    imp_ga_mulip=k;
     imp_gamma=new float[(tensor_dim*k)*tensor_dim];
     for (int i=0; i<tensor_dim*k*tensor_dim; i++) {
         imp_gamma[i]=0;
@@ -329,6 +336,7 @@ void Cluster::map_data(float *clu, int no){
     }
 }
 
+
 Cluster::~Cluster(){
 }
 //how to deal with mallac
@@ -365,6 +373,7 @@ void Cluster::clu_sym_cal(Cluster a,int sym_idx, float** linear_trans, float *tr
             clu_vertex[i*dim+j]=result(j,0);
         }
     }
+
 }
 
 Cluster::Cluster(int no_ver, float** vertex){
@@ -451,6 +460,7 @@ void find_orbital_space(Cluster* clu, int no_of_ver, int no_of_rep, int no_of_sy
             }
         }
     }
+    
 }
 
 Cluster* imp_clu_enu(int no_of_imp,int no_of_ver,int no_of_rep, Cluster* clu_rep,int & tot){
@@ -538,27 +548,142 @@ Cluster** clu_symmety(int no_of_ver,int no_of_sym, Cluster** clusters_rep, int *
     }
     return clu_sym;
 }
-void isotromy_gamma(Cluster* clu_sym, int* arr, int no_of_os){
-    int num=clu_sym[arr[0]].no_of_ver;
-    int tensor_dim=power(3, num);
-    int tot=(no_of_os*tensor_dim)*tensor_dim;
-    float* temp=new float[tot];
-    for (int i=0,u=0; i<no_of_os; i++) {
-        for(int j=0;j<tensor_dim;j++){
-            for(int k=0;k<tensor_dim;k++,u++){
-                temp[u]=clu_sym[arr[i]].gamma[j*tensor_dim+k];
-                if (j==k) {
-                    temp[u]--;
+int* find_isotromy(Cluster* clu_sym,int st_p, int &no_os, int num_of_sym, int id_idx){
+    int id=clu_sym[st_p+id_idx].isotromy;
+    no_os=0;
+    for (int i=0; i<num_of_sym; i++) {
+        if (clu_sym[st_p+i].isotromy==id) {
+            no_os++;
+        }
+    }
+    int *arr =new int[no_os];
+    for (int i=0,u=0;i<num_of_sym ; i++) {
+        if (clu_sym[st_p+i].isotromy==id) {
+            arr[u]=i;
+            u++;
+        }
+    }
+    
+    clu_sym[arr[0]+st_p].rep=true;
+    clu_sym[arr[0]+st_p].num_in_os=no_os;
+    return arr;
+}
+
+void isotromy_gamma(Cluster* clu_sym, int no_of_sym, int tot_no, int id_idx){
+    for (int clu=0; clu<tot_no; clu+=no_of_sym) {
+        int no_os=0;
+        int* arr=find_isotromy(clu_sym,clu, no_os, no_of_sym, id_idx);
+        int num=clu_sym[clu+arr[0]].no_of_ver;
+        int tensor_dim=power(3, num);
+        int tot=(no_os*tensor_dim)*tensor_dim;
+        float* temp=new float[tot];
+        for (int i=0,u=0; i<no_os; i++) {
+            for(int j=0;j<tensor_dim;j++){
+                for(int k=0;k<tensor_dim;k++,u++){
+                    temp[u]=clu_sym[clu+arr[i]].gamma[j*tensor_dim+k];
+                    if (j==k) {
+                        temp[u]--;
+                    }
                 }
             }
         }
+        if (clu_sym[clu+arr[0]].imp) {
+            int k=clu_sym[clu+arr[0]].imp_ga_mulip;
+            int row_imp=tensor_dim*(k+no_os);
+            int tot_imp=row_imp*tensor_dim;
+            clu_sym[clu+arr[0]].gamma=new float[tot_imp];
+            for (int i=0; i<tot; i++) {
+                clu_sym[clu+arr[0]].gamma[i]=temp[i];
+            }
+            int* temp_imp=new int[k*tensor_dim*tensor_dim];
+            for (int u=0; u<k; u++) {
+                for (int i=0; i<tensor_dim; i++) {
+                    for (int j=0;j<tensor_dim ; j++) {
+                        temp_imp[(u*tensor_dim+i)*tensor_dim+j]=clu_sym[clu+arr[0]].imp_gamma[(u*tensor_dim+i)*tensor_dim+j];
+                        if (i==j) {
+                            temp_imp[(u*tensor_dim+i)*tensor_dim+j]--;
+                        }
+                    }
+                }
+            }
+            for (int i=tot; i<tot_imp; i++) {
+                clu_sym[clu+arr[0]].gamma[i]=temp_imp[i-tot];
+            }
+            delete[] temp_imp;
+            for (int i=0; i<row_imp; i++) {
+                for (int j=0; j<tensor_dim; j++) {
+                    cout<<clu_sym[clu+arr[0]].gamma[i*tensor_dim+j]<<"\t";
+                }cout<<endl;
+            }
+        }
+        else{
+            clu_sym[clu+arr[0]].gamma=new float[tot];
+            for (int i=0; i<tot; i++) {
+                clu_sym[clu+arr[0]].gamma[i]=temp[i];
+            }
+        }
+        delete []temp;
     }
-    clu_sym[arr[0]].gamma=new float[tot];
-    for (int i=0; i<tot; i++) {
-        clu_sym[arr[0]].gamma[i]=temp[i];
-    }
-    delete []temp;
 }
+
+
+void print_max(float* v, int row, int col){
+    for (int i=0; i<row; i++) {
+        for (int j=0; j<col; j++) {
+            cout<<v[i*col+j]<<"\t";
+        }cout<<endl;
+    }cout<<endl;
+}
+void Cluster::find_red_fct(){
+    int ten_dim=power(3, no_of_ver);
+   if (rep) {
+        if (imp) {
+            cout<<"imp"<<endl;
+            int tot=(ten_dim*(num_in_os+imp_ga_mulip))*ten_dim;
+            double* b_out_tmp=new double[tot];
+            double*v= new double[tot];
+            for (int i=0; i<tot; i++) {
+                v[i]=gamma[i];
+            }
+            int row=(num_in_os+imp_ga_mulip)*ten_dim;
+            cout<<row<<endl;
+            int col=nullspace(row, ten_dim, v, b_out_tmp);
+            cout<<col<<endl;
+            red_fct=new float[ten_dim*col];
+            for (int i=0; i<row; i++) {
+                for (int j=0; j<col; j++) {
+                    red_fct[i*col+j]=b_out_tmp[i*col+j];
+                }
+            }
+            print_max(red_fct, ten_dim, col);
+            cout<<endl;
+            delete []b_out_tmp;
+            delete []v;
+        }
+        else{
+            int tot=(ten_dim*num_in_os)*ten_dim;
+            double* b_out_tmp=new double[tot];
+            double*v= new double[tot];
+            for (int i=0; i<tot; i++) {
+                v[i]=gamma[i];
+            }
+            int col=nullspace(ten_dim*num_in_os, ten_dim, v, b_out_tmp);
+            red_fct=new float[ten_dim*col];
+            int row=ten_dim;
+            for (int i=0; i<row; i++) {
+                for (int j=0; j<col; j++) {
+                    red_fct[i*col+j]=b_out_tmp[i*col+j];
+                }
+            }
+            print_max(red_fct, row, col);
+            delete []b_out_tmp;
+            delete []v;
+        }
+    }
+    
+}
+
+
 
 
 int main() {
@@ -797,15 +922,20 @@ int main() {
     
 //
 //
-    int array[12]={};
-    for (int i=0,u=0; i<no_of_sym; i++) {
-        if (clu_sym[2][i].isotromy==2) {
-            array[u]=i;
-            cout<<i<<"\t";
-            u++;
-        }
-    }cout<<endl;
-    cout<<clu_num[3]<<endl;
+//    int array[12]={};
+//    for (int i=0,u=0; i<no_of_sym; i++) {
+//        if (clu_sym[2][i].isotromy==2) {
+//            array[u]=i;
+//            cout<<i<<"\t";
+//            u++;
+//        }
+//    }cout<<endl;
+//    int *arr=find_isotromy(clu_sym[3], no_of_sym, 10);
+//    for (int i=0; i<4; i++) {
+//        cout<<arr[i]<<"\t";
+//    }
+    
+//    cout<<clu_num[3]<<endl;
     cout<<"Find gamma conversion"<<endl;
     for (int ver=1; ver<=no_of_ver; ver++) {
         for (int i=0; i<clu_num[ver]*48; i++) {
@@ -813,7 +943,38 @@ int main() {
             clu_sym[ver][i].imp_gamma_cal();
         }
     }
-    isotromy_gamma(clu_sym[2], array, 12);
+    cout<<clu_sym[3][34*48].imp_ga_mulip<<endl;
+    for (int i=0; i<27*clu_sym[3][34*48].imp_ga_mulip; i++) {
+        for (int j=0; j<27; j++) {
+            cout<<clu_sym[3][34*48].imp_gamma[i*27+j]<<"\t";
+        }cout<<endl;
+    }
+    
+    cout<<"find reduced C"<<endl;;
+    isotromy_gamma(clu_sym[3], no_of_sym, clu_num[3]*48, 10);
+    for (int i=34*48; i<clu_num[3]*48; i++) {
+        if (clu_sym[3][i].rep) {
+            cout<<i%48<<endl;
+            clu_sym[3][i].find_red_fct();
+        }
+        
+    }
+//    for (int i=48; i<2*48; i++) {
+//        if (clu_sym[3][i].no_of_os==0) {
+//            cout<<i-48<<"\t";
+//        }
+//    }
+//    for (int i=48; i<2*48; i++) {
+//        if (clu_sym[3][i].isotromy==6) {
+//            cout<<i-48<<"\t";
+//        }
+//    }
+//    for (int i=0; i<6*27; i++) {
+//        for (int j=0; j<27; j++) {
+//            cout<<clu_sym[3][54].gamma[i*27+j]<<"\t";
+//        }cout<<endl;
+//    }
+    //isotromy_gamma(clu_sym[2], array, 12);
 //    for (int i=0; i<4*27; i++) {
 //        for (int j=0; j<27; j++) {
 //            cout<<clu_sym[3][10].gamma[i*27+j]<<"\t";
@@ -827,20 +988,22 @@ int main() {
 //    }
 //    cout<<endl;
     
+//
     
-    double* ver=new double[12*9*9];
-    int tot=12*9*9;
-    for (int i=0; i<tot; i++) {
-        ver[i]=clu_sym[2][2].gamma[i];
-    }
-    double* b_out=new double[12*9*9];
-    int col=nullspace(12*9, 9, ver, b_out);
-    cout<<col<<endl;
-    for (int i=0; i<27*4; i++) {
-        for (int j=0;j<col; j++) {
-            cout<<b_out[i*col+j]<<"\t";
-        }cout<<endl;
-    }
+//    double* ver=new double[6*27*27];
+//    int tot=6*27*27;
+//    for (int i=0; i<tot; i++) {
+//        ver[i]=clu_sym[3][54].gamma[i];
+//    }
+//    double* b_out=new double[6*27*27];
+//    int col=nullspace(6*27, 27, ver, b_out);
+//    
+//    cout<<col<<endl;
+//    for (int i=0; i<27*6; i++) {
+//        for (int j=0;j<col; j++) {
+//            cout<<b_out[i*col+j]<<"\t";
+//        }cout<<endl;
+//    }
     
     
 ////
