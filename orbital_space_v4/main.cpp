@@ -116,6 +116,22 @@ int **permu_fun(int no_of_ver){
     delete [] arr;
     return arr2;
 }
+void symop_DtoC(float*** linear_tran, float*** linear_tran_c, int no_of_sym, Eigen::MatrixXd trans){
+    for (int idx=0; idx<no_of_sym; idx++) {
+        Eigen::MatrixXd temp(3,3);
+        for (int i=0; i<3; i++) {
+            for (int j=0;j<3; j++) {
+                temp(i,j)=linear_tran[idx][i][j];
+            }
+        }
+        temp=trans*temp*trans.inverse();
+        for (int i=0; i<3; i++) {
+            for (int j=0; j<3; j++) {
+                linear_tran_c[idx][i][j]=temp(i,j);
+            }
+        }
+    }
+}
 class Cluster{
 public:
     static Cluster* create(int num, int size);
@@ -194,15 +210,16 @@ void Cluster::imp_gamma_cal(){
         imp_gamma[i]=0;
     }
 
-    float **temp=new float*[tensor_dim];
-    for (int i=0; i<tensor_dim; i++) {
-        temp[i]=new float[tensor_dim];
-    }
+    
     tensor_ind(arr, tensor_dim, 3);
     for (int u=0; u<k; u++) {
         //cout<<"after permu"<<endl;
         for (int i=0; i<tensor_dim;i++ ) {
             swap(arr[i][permu[u][0]],arr[i][permu[u][1]]);
+        }
+        float **temp=new float*[tensor_dim];
+        for (int i=0; i<tensor_dim; i++) {
+            temp[i]=new float[tensor_dim];
         }
         
         for (int i=0; i<tensor_dim;i++ ) {
@@ -216,8 +233,8 @@ void Cluster::imp_gamma_cal(){
                 imp_gamma[(u*tensor_dim+i)*tensor_dim+j]=temp[i][j];
             }
         }
+        delete []temp;
     }
-    delete []temp;
     delete []permu;
     delete []arr;
 }
@@ -710,6 +727,14 @@ int main() {
     //create the matrix to read in the symmetry group
     //one linear transformation group, one translation group
     float ***linear_tran=new float**[no_of_sym];
+    float ***linear_tran_c=new float**[no_of_sym];
+    for (int i=0; i<no_of_sym; i++) {
+        linear_tran_c[i]=new float*[3];
+        for (int j=0; j<3; j++) {
+            linear_tran_c[i][j]=new float[3];
+        }
+        
+    }
     float ***transl=new float**[no_of_sym];
     for(int i=0;i<a;i++){
         linear_tran[i]=new float*[3];
@@ -739,7 +764,16 @@ int main() {
         }
         
     }
-    
+    Eigen::MatrixXd trans(3,3);
+    trans<<0,1,1,1,0,1,1,1,0;
+    symop_DtoC(linear_tran, linear_tran_c, no_of_sym, trans);
+    for (int i=0; i<no_of_sym; i++) {
+        for (int j=0; j<3; j++) {
+            for (int k=0; k<3; k++) {
+                cout<<linear_tran_c[i][j][k]<<"\t";
+            }cout<<endl;
+        }cout<<endl<<endl;
+    }
     
     //create 1,2,3 clusters 3-d matrix[ind][row][column]
     float **single=new float*[2];
@@ -960,25 +994,51 @@ int main() {
     cout<<"Find gamma conversion"<<endl;
     for (int ver=2; ver<=no_of_ver; ver++) {
         for (int i=0; i<clu_num[ver]*48; i++) {
-            clu_sym[ver][i].gamma_cal(linear_tran);
+            clu_sym[ver][i].gamma_cal(linear_tran_c);
             clu_sym[ver][i].imp_gamma_cal();
         }
     }
-//    cout<<clu_sym[3][34*48].imp_ga_mulip<<endl;
+    //cout<<clu_sym[3][34*48].imp_ga_mulip<<endl;
 //    for (int i=0; i<27*clu_sym[3][34*48].imp_ga_mulip; i++) {
 //        for (int j=0; j<27; j++) {
 //            cout<<clu_sym[3][34*48].imp_gamma[i*27+j]<<"\t";
 //        }cout<<endl;
 //    }
-    
-    cout<<"find reduced C"<<endl;;
-    isotromy_gamma(clu_sym[3], no_of_sym, clu_num[3]*48, 10);
-    for (int i=33*48; i<clu_num[3]*48; i++) {
-        if (clu_sym[3][i].rep) {
-            cout<<i%48<<endl;
-            clu_sym[3][i].find_red_fct();
+    for (int i=24*48; i<clu_num[2]*48; i++) {
+//        if (clu_sym[2][i].no_of_os==0) {
+//            cout<<i%48;
+//        }
+        if (clu_sym[2][i].isotromy==0) {
+            for (int j=0; j<2; j++) {
+                cout<<clu_sym[2][i].permu[j]<<"\t";
+            }cout<<endl;
+//            for (int j=0; j<9; j++) {
+//                for(int k=0;k<9;k++)
+//                    cout<<clu_sym[2][i].gamma[j*9+k]<<"\t";
+//                cout<<endl;
+//            }
         }
-        
+    }
+    cout<<"find reduced C"<<endl;;
+    isotromy_gamma(clu_sym[3], no_of_sym, clu_num[3]*no_of_sym, 10);
+    isotromy_gamma(clu_sym[2], no_of_sym, clu_num[2]*no_of_sym, 10);
+
+    
+//        for (int i=0; i<27*clu_sym[3][34*48].imp_ga_mulip; i++) {
+//            for (int j=0; j<27; j++) {
+//                cout<<clu_sym[3][34*48].imp_gamma[i*27+j]<<"\t";
+//            }cout<<endl;
+//        }cout<<endl<<endl;
+//    for (int i=0; i<9*25; i++) {
+//                for (int j=0; j<9; j++) {
+//                    cout<<clu_sym[2][24*48].gamma[i*9+j]<<"\t";
+//                }cout<<endl;
+//            }
+    for (int i=23*48; i<clu_num[2]*48; i++) {
+        if (clu_sym[2][i].rep) {
+            cout<<i%48<<endl;
+            clu_sym[2][i].find_red_fct();
+        }
     }
 //    for (int i=48; i<2*48; i++) {
 //        if (clu_sym[3][i].no_of_os==0) {
