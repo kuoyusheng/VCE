@@ -211,7 +211,7 @@ void Cluster::imp_gamma_cal(){
     }
 
     
-    tensor_ind(arr, tensor_dim, 3);
+    tensor_ind(arr, tensor_dim, no_of_ver);
     for (int u=0; u<k; u++) {
         //cout<<"after permu"<<endl;
         for (int i=0; i<tensor_dim;i++ ) {
@@ -991,6 +991,9 @@ int main() {
 //    }
     
 //    cout<<clu_num[3]<<endl;
+    clu_sym[2][24*48].imp_gamma_cal();
+    cout<<"Hey";
+
     cout<<"Find gamma conversion"<<endl;
     for (int ver=2; ver<=no_of_ver; ver++) {
         for (int i=0; i<clu_num[ver]*48; i++) {
@@ -1004,19 +1007,19 @@ int main() {
 //            cout<<clu_sym[3][34*48].imp_gamma[i*27+j]<<"\t";
 //        }cout<<endl;
 //    }
-    for (int i=24*48; i<clu_num[2]*48; i++) {
+    for (int i=24*48,k=0; i<clu_num[2]*48; i++,k++) {
 //        if (clu_sym[2][i].no_of_os==0) {
 //            cout<<i%48;
 //        }
-        if (clu_sym[2][i].isotromy==0) {
-            for (int j=0; j<2; j++) {
-                cout<<clu_sym[2][i].permu[j]<<"\t";
-            }cout<<endl;
-//            for (int j=0; j<9; j++) {
-//                for(int k=0;k<9;k++)
-//                    cout<<clu_sym[2][i].gamma[j*9+k]<<"\t";
-//                cout<<endl;
-//            }
+        if (clu_sym[2][i].isotromy==0&&clu_sym[2][i].imp) {
+//            for (int j=0; j<2; j++) {
+//                cout<<clu_sym[2][i].permu[j]<<"\t";
+//            }cout<<endl;
+            for (int j=0; j<9&&k==0; j++) {
+                for(int k=0;k<9;k++)
+                    cout<<clu_sym[2][i].imp_gamma[j*9+k]<<"\t";
+                cout<<endl;
+            }
         }
     }
     cout<<"find reduced C"<<endl;;
@@ -1034,7 +1037,7 @@ int main() {
 //                    cout<<clu_sym[2][24*48].gamma[i*9+j]<<"\t";
 //                }cout<<endl;
 //            }
-    for (int i=23*48; i<clu_num[2]*48; i++) {
+    for (int i=24*48; i<clu_num[2]*48; i++) {
         if (clu_sym[2][i].rep) {
             cout<<i%48<<endl;
             clu_sym[2][i].find_red_fct();
