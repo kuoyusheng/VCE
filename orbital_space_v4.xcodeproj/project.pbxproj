@@ -26,6 +26,9 @@
 		F57FE34A1B83CB3600DEE0B9 /* orbital_space_v4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = orbital_space_v4; sourceTree = BUILT_PRODUCTS_DIR; };
 		F57FE34D1B83CB3600DEE0B9 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		F5A187A01B8DAB2A000D8951 /* null_space.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = null_space.h; sourceTree = "<group>"; };
+		F5E298651BB095D40004A14B /* vib_cluster.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vib_cluster.h; sourceTree = "<group>"; };
+		F5E298661BB09B430004A14B /* clusters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = clusters.h; sourceTree = "<group>"; };
+		F5E298671BB09BB70004A14B /* util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +63,9 @@
 			children = (
 				F57FE34D1B83CB3600DEE0B9 /* main.cpp */,
 				F5A187A01B8DAB2A000D8951 /* null_space.h */,
+				F5E298651BB095D40004A14B /* vib_cluster.h */,
+				F5E298661BB09B430004A14B /* clusters.h */,
+				F5E298671BB09BB70004A14B /* util.h */,
 			);
 			path = orbital_space_v4;
 			sourceTree = "<group>";
