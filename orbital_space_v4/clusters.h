@@ -49,6 +49,7 @@ public:
     float clu_dist=0;
     float* gamma;
     float* imp_gamma;
+    float* bmat;
     float* red_fct;
     int imp_ga_mulip=0;
     
@@ -446,7 +447,6 @@ void cluster_rep(int** arr_rep_no,Cluster **clusters_rep,int no_of_ver,float***l
         int imp_prop_no=prop_no;
         int tot=0;
         for (int i=1; i<ver; i++) {
-            cout<<"shit"<<endl;
             int no_of_imp=i;
             int no_ver=ver-no_of_imp;
             int multip=0;
@@ -464,6 +464,7 @@ void cluster_rep(int** arr_rep_no,Cluster **clusters_rep,int no_of_ver,float***l
         }
     }
 }
+
 Cluster** clu_symmety(int no_of_ver,int no_of_sym, Cluster** clusters_rep, int **arr_rep_no, float***linear_tran, float***transl){
     int clu_num[4];
     
@@ -529,7 +530,7 @@ void isotromy_gamma(Cluster* clu_sym, int no_of_sym, int tot_no, int id_idx){
             int k=clu_sym[clu+arr[0]].imp_ga_mulip;
             int row_imp=tensor_dim*(k+no_os);
             int tot_imp=row_imp*tensor_dim;
-            clu_sym[clu+arr[0]].gamma=new float[tot_imp];
+            clu_sym[clu+arr[0]].bmat=new float[tot_imp];
             for (int i=0; i<tot; i++) {
                 clu_sym[clu+arr[0]].gamma[i]=temp[i];
             }
@@ -545,19 +546,14 @@ void isotromy_gamma(Cluster* clu_sym, int no_of_sym, int tot_no, int id_idx){
                 }
             }
             for (int i=tot; i<tot_imp; i++) {
-                clu_sym[clu+arr[0]].gamma[i]=temp_imp[i-tot];
+                clu_sym[clu+arr[0]].bmat[i]=temp_imp[i-tot];
             }
             delete[] temp_imp;
-            //            for (int i=0; i<row_imp; i++) {
-            //                for (int j=0; j<tensor_dim; j++) {
-            //                    cout<<clu_sym[clu+arr[0]].gamma[i*tensor_dim+j]<<"\t";
-            //                }cout<<endl;
-            //            }
         }
         else{
-            clu_sym[clu+arr[0]].gamma=new float[tot];
+            clu_sym[clu+arr[0]].bmat=new float[tot];
             for (int i=0; i<tot; i++) {
-                clu_sym[clu+arr[0]].gamma[i]=temp[i];
+                clu_sym[clu+arr[0]].bmat[i]=temp[i];
             }
         }
         delete []temp;
@@ -581,7 +577,7 @@ void Cluster::find_red_fct(){
             double* b_out_tmp=new double[tot];
             double*v= new double[tot];
             for (int i=0; i<tot; i++) {
-                v[i]=gamma[i];
+                v[i]=bmat[i];
             }
             int row=(num_in_os+imp_ga_mulip)*ten_dim;
             cout<<row<<endl;
@@ -603,7 +599,7 @@ void Cluster::find_red_fct(){
             double* b_out_tmp=new double[tot];
             double*v= new double[tot];
             for (int i=0; i<tot; i++) {
-                v[i]=gamma[i];
+                v[i]=bmat[i];
             }
             int col=nullspace(ten_dim*num_in_os, ten_dim, v, b_out_tmp);
             red_fct=new float[ten_dim*col];

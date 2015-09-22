@@ -17,6 +17,7 @@
 using namespace std;
 using Eigen::MatrixXd;
 
+
 int** find_all_atoms(int cut_off, int no_of_atom, int& no){
     int a=power(cut_off, 3);
     int **arr1=new int*[power(cut_off, 3)];
