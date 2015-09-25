@@ -363,9 +363,11 @@ int main() {
     for (int ver=2; ver<=no_of_ver; ver++) {
         for (int i=0; i<clu_num[ver]*48; i++) {
             clu_sym[ver][i].gamma_cal(linear_tran_c);
+            //clu_sym[ver][i].gamma_cal(linear_tran);
             clu_sym[ver][i].imp_gamma_cal();
         }
     }
+
     //cout<<clu_sym[3][34*48].imp_ga_mulip<<endl;
 //    for (int i=0; i<27*clu_sym[3][34*48].imp_ga_mulip; i++) {
 //        for (int j=0; j<27; j++) {
@@ -402,25 +404,113 @@ int main() {
 //                    cout<<clu_sym[2][24*48].gamma[i*9+j]<<"\t";
 //                }cout<<endl;
 //            }
-    for (int i=24*48; i<clu_num[2]*48; i++) {
-        if (clu_sym[2][i].rep) {
-            cout<<i%48<<endl;
-            clu_sym[2][i].find_red_fct();
-        }
+    float** Cmat=new float*[9*clu_num[2]];
+    for (int i=0; i<9*clu_num[2]; i++) {
+        Cmat[i]=new float[9*clu_num[2]];
     }
+    int col_tot=0;
+    int num=0;
+    for (int i=0; i<clu_num[2]*48; i++) {
+        if (clu_sym[2][i].rep) {
+            //cout<<i%48<<endl;
+            int col=0;
+            float*fct = clu_sym[2][i].find_red_fct(col);
+                for (int j=0; j<9; j++) {
+                    for (int k=0; k<9; k++) {
+                        if(fct[j*9+k]<1e-9)
+                            fct[j*9+k]=0;
+                        Cmat[num*9+j][col_tot+k]=fct[j*9+k];
+                    }
+                }
+            num++,col_tot+=col;
+        }
+    }cout<<num<<endl;
+    cout<<col_tot<<endl;
+    cout<<"Cmat: "<<endl;
+    float** Cmat_new=new float*[9*clu_num[2]];
+    for (int i=0; i<9*clu_num[2]; i++) {
+        Cmat_new[i]=new float[col_tot];
+        for (int j=0; j<col_tot; j++) {
+            Cmat_new[i][j]=Cmat[i][j];
+        }cout<<endl;
+    }
+    return 1;
+
     int no=2;
     Cluster prim(no);
     float prim_ver[]={1,1,1,0.25,0.25,0.25};
     for (int i=0; i<2*3; i++) {
         prim.clu_vertex[i]=prim_ver[i];
     }
+    prim.index_elements(prim);
+   
     for (int i=0; i<no_of_ver; i++) {
         for (int j=0;j<clu_num[i]*no_of_sym; j++) {
             clu_sym[i][j].index_elements(prim);
         }
     }
-    int num=0;
-    find_all_atoms(5, 2, num);
+    num=0;
+    int no_of_ver_1=2;
+    int **all_atom=find_all_atoms(4, 2, num);
+    Cluster* all_np=Cluster::create(power(num, no_of_ver_1-1), no_of_ver_1);
+    for (int prim_ind=0; prim_ind<no; prim_ind++) {
+        for (int i=0; i<num; i++) {
+            int* clu=new int[no_of_ver_1*4];
+            int j=0;
+            for (j=0; j<4; j++) {
+                clu[j]=prim.clu_vertex_atom[prim_ind*4+j];
+            }
+            for (int k=0; k<4; k++,j++) {
+                clu[j]=all_atom[i][k];
+            }
+            all_np[i].map_data_atom(clu, no_of_ver_1);
+            delete[] clu;
+        }
+    }
+    int igp=0;
+    int no_rep=clu_num[2]*no_of_sym;
+    int ten_dim=power(3, no_of_ver_1);
+    float** Bmat=new float*[ten_dim];
+    for (int i=0; i<ten_dim; i++) {
+        Bmat[i]=new float[ten_dim*no_rep];
+    }
+    for (int ip=0; ip<num; ip++) {
+        for (int idx=0; idx<no_rep; idx++) {
+            float* gamma=transl_invariant_conversion(clu_sym[no_of_ver_1][idx], all_np[ip], linear_tran_c,igp);
+            if (gamma==NULL)
+                continue;
+            int s_col=idx/no_of_sym;
+            for (int i=0;i<ten_dim; i++) {
+                for (int j=ten_dim*s_col,l=0; l<ten_dim; j++,l++) {
+                    Bmat[i][j]+=gamma[i*ten_dim+l];
+                }
+            }
+        }
+    }
+//    for (int i=0; i<ten_dim; i++) {
+//        for (int j=0; j<ten_dim*no_rep; j++) {
+//            cout<<Bmat[i][j]<<'\t';
+//        }cout<<endl;
+//    }
+    double* bmat=new double[ten_dim*ten_dim*clu_num[2]];
+    double* b_out=new double[ten_dim*ten_dim*clu_num[2]];
+    for (int i=0; i<ten_dim; i++) {
+        for (int j=0; j<ten_dim*clu_num[2]; j++) {
+            bmat[i*ten_dim*clu_num[2]+j]=Bmat[i][j];
+        }
+    }
+    int col=nullspace(ten_dim, ten_dim*clu_num[2], bmat, b_out);
+    cout<<col<<'\t'<<ten_dim*clu_num[2];
+    
+    
+    
+   
+    
+    
+    
+    
+    
+    
     
 //    for (int i=48; i<2*48; i++) {
 //        if (clu_sym[3][i].no_of_os==0) {
