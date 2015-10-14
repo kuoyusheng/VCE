@@ -206,7 +206,7 @@ void MtxToReducedREForm(Matrix m)
             m->prow[rix] = tmprow;
             m->pnz[rix] = tmpnz;
         }
-        // MtxNormalizeRow(m, rix, lead );
+        // MtxNormalizeRow(m, rix, lead);
         double * pr = m->prow[rix];
         int * pnz = m->pnz[rix];
         double invv = 1.0/pr[lead];
@@ -254,32 +254,36 @@ int calc_nullspacebasis(Matrix mat, double *b_out) {
     }
     
     nfree = n - nnotf;
-    if (nfree <=0 ) return 0;
+    //if (nfree <=0 ) return 0;
     
-    //  nullspace = r8mat_zero_new ( n, nullspace_size );
-    for (int i=0; i<nfree*n; i++) b_out[i]=0.0;
-    
-    int j2 = 0, i2;
-    //
-    //  If column J does not contain a leading 1, then it contains
-    //  information about a null vector.
-    //
-    for (int j = 0; j < n; j++ )
-    {
-        if ( col[j] < 0 )
+    if (nfree > 0) {
+        
+        //  nullspace = r8mat_zero_new ( n, nullspace_size );
+        for (int i=0; i<nfree*n; i++) b_out[i]=0.0;
+        
+        int j2 = 0, i2;
+        //
+        //  If column J does not contain a leading 1, then it contains
+        //  information about a null vector.
+        //
+        for (int j = 0; j < n; j++ )
         {
-            for (int i = 0; i < m; i++ )
+            if ( col[j] < 0 )
             {
-                if (mat->pnz[i][j])
+                for (int i = 0; i < m; i++ )
                 {
-                    i2 = row[i] - 1;
-                    b_out[i2+j2*n] = - mat->prow[i][j];
+                    if (mat->pnz[i][j])
+                    {
+                        i2 = row[i] - 1;
+                        b_out[i2+j2*n] = - mat->prow[i][j];
+                    }
                 }
+                b_out[j+j2*n] = 1.0;
+                j2++;
             }
-            b_out[j+j2*n] = 1.0;
-            j2++;
         }
     }
+    
     delete [] col;
     delete [] row;
     
@@ -288,7 +292,7 @@ int calc_nullspacebasis(Matrix mat, double *b_out) {
      printf("\n");
      }*/
     
-    return nfree;
+    return nfree > 0 ? nfree : 0;
 }
 
 int nullspace(int x_dim, int y_dim, double* v, double *b_out) {

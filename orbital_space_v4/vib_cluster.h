@@ -14,9 +14,15 @@ public:
     vib_cluster();
     vib_cluster(Cluster proper, Cluster imp)
     ~Cluster();
+    //for cluster expansion
     Cluster proper;
+    //for lattice dynamics
     Cluster imp;
     float* fct;
+private:
+    int  no_of_ver=proper.no_of_ver+imp.no_of_ver;
+    int  no_of_pro_ver=proper.no_of_ver;
+    int  no_of_imp_ver=
 };
 
 #endif

@@ -1,3 +1,4 @@
+
 //
 //  clusters.h
 //  orbital_space_v4
@@ -16,7 +17,7 @@ public:
     Cluster();
     Cluster(int no_of_ver);
     Cluster(int no_of_ver, float ** vertex);
-    ~Cluster();
+    //~Cluster();
     
     void assign_val(Cluster a);
     void map_data(float *clu, int no);
@@ -30,6 +31,7 @@ public:
     void permu_vertex(int *pi);
     void index_elements(Cluster prim);
     void print_clu();
+    void print_clu_atom();
     void clu_sym_cal(Cluster a,int sym_no, float **linear_trans,float *transl);
     void clu_imp_enum(Cluster , int, int*);
     float* find_red_fct(int& col);
@@ -39,19 +41,19 @@ public:
     int isotromy=0;
     int no_of_os=0;
     int num_in_os=0;
-    float *clu_vertex;
-    int *clu_vertex_atom;
-    int *permu;
-    int no_of_ver;
-    bool sym_distinctive;
+    float *clu_vertex=NULL;
+    int *clu_vertex_atom=NULL;
+    int *permu=NULL;
+    int no_of_ver=0;
+    bool sym_distinctive=false;
     bool imp=false;
     bool rep=false;
-    int *imp_idx;
+    int *imp_idx=NULL;
     float clu_dist=0;
-    float* gamma;
-    float* imp_gamma;
-    float* bmat;
-    float* red_fct;
+    float* gamma=NULL;
+    float* imp_gamma=NULL;
+    float* bmat=NULL;
+    float* red_fct=NULL;
     int imp_ga_mulip=0;
     
 private:
@@ -92,7 +94,16 @@ void Cluster::imp_gamma_cal(){
     int** arr =new int*[tensor_dim];
     for (int i=0; i<tensor_dim; i++) {
         arr[i]=new int[no_of_ver];
+        for(int j=0;j<no_of_ver;j++){
+            arr[i][j]=0;
+        }
     }
+//    cout<<"array"
+//    for(int i=0;i<tensor_dim;i++){
+//        for (int j=0; j<no_of_ver; j++) {
+//            cout<<arr[i][j]<<" ";
+//        }
+//    }
     int** permu =new int*[tensor_dim];
     for (int i=0; i<tensor_dim; i++) {
         permu[i]=new int[no_of_ver];
@@ -108,6 +119,9 @@ void Cluster::imp_gamma_cal(){
             }
         }
     }
+//    for(int i=0;i<k;i++){
+//        cout<<permu[i][0]<<permu[i][1]<<endl;
+//    }
     //    if(npt==3)
     //        cout<<k<<endl;
     imp_ga_mulip=k;
@@ -118,6 +132,13 @@ void Cluster::imp_gamma_cal(){
     
     
     tensor_ind(arr, tensor_dim, no_of_ver);
+//        cout<<"array";
+//        for(int i=0;i<tensor_dim;i++){
+//            for (int j=0; j<no_of_ver; j++) {
+//                cout<<arr[i][j]<<" ";
+//            }cout<<endl;
+//        }cout<<endl;
+    
     for (int u=0; u<k; u++) {
         //cout<<"after permu"<<endl;
         for (int i=0; i<tensor_dim;i++ ) {
@@ -126,22 +147,35 @@ void Cluster::imp_gamma_cal(){
         float **temp=new float*[tensor_dim];
         for (int i=0; i<tensor_dim; i++) {
             temp[i]=new float[tensor_dim];
+            for(int j=0;j<tensor_dim;j++){
+                temp[i][j]=0;
+            }
         }
         
         for (int i=0; i<tensor_dim;i++ ) {
             int tmp=0;
             for (int j=0; j<npt; j++) {
                 tmp+=(arr[i][j]*power(3, npt-j-1));
-            }temp[i][tmp]=1;
+            }
+            temp[i][tmp]=1;
         }
         for (int i=0; i<tensor_dim; i++) {
             for (int j=0; j<tensor_dim; j++) {
                 imp_gamma[(u*tensor_dim+i)*tensor_dim+j]=temp[i][j];
             }
         }
+        for(int i=0;i<tensor_dim;i++){
+            delete [] temp[i];
+        }
         delete []temp;
     }
+    for(int i=0;i<tensor_dim;i++){
+        delete[] permu[i];
+    }
     delete []permu;
+    for(int i=0;i<tensor_dim;i++){
+        delete[] arr[i];
+    }
     delete []arr;
 }
 
@@ -150,6 +184,9 @@ void Cluster::gamma_cal(float ***linear_trans){
     int **tensor =new int*[tensor_dim];
     for (int i=0; i<tensor_dim; i++) {
         tensor[i]=new int[no_of_ver];
+        for(int j=0;j<no_of_ver;j++){
+            tensor[i][j]=0;
+        }
     }
     gamma=new float[tensor_dim*tensor_dim];
     tensor_ind(tensor, tensor_dim, no_of_ver);
@@ -165,7 +202,10 @@ void Cluster::gamma_cal(float ***linear_trans){
             gamma[i*tensor_dim+j]=tmp;
         }
     }
-    delete []tensor;
+    for(int i=0;i<tensor_dim;i++){
+        delete[] tensor[i];
+    }
+    delete[] tensor;
 }
 int Cluster::dim=3;
 
@@ -251,6 +291,13 @@ void Cluster::print_clu(){
         }cout<<endl;
     }cout<<endl;
 }
+void Cluster::print_clu_atom(){
+    for (int i=0; i<no_of_ver; i++) {
+        for (int j=0; j<(dim+1); j++) {
+            cout<<clu_vertex_atom[i*(dim+1)+j]<<"\t";
+        }cout<<endl;
+    }cout<<endl;
+}
 void Cluster::map_data(float *clu, int no){
     no_of_ver=no;
     clu_vertex=new float[no_of_ver*dim];
@@ -269,8 +316,9 @@ void Cluster::map_data_atom(int*clu, int no){
         }
     }
 }
-Cluster::~Cluster(){
-}
+//Cluster::~Cluster(){
+//    delete []
+//}
 //how to deal with mallac
 void Cluster::clu_sym_cal(Cluster a,int sym_idx, float** linear_trans, float *transl){
     no_of_sym=sym_idx;
@@ -283,7 +331,7 @@ void Cluster::clu_sym_cal(Cluster a,int sym_idx, float** linear_trans, float *tr
             imp_idx[i]=a.imp_idx[i];
         }
     }
-    permu=new int[no_of_ver];
+    //permu=new int[no_of_ver];
     for (int i=0; i<no_of_ver; i++) {
         permu[i]=i;
     }
@@ -342,7 +390,7 @@ bool Cluster::compare_transl_dist(Cluster b){
     for(int idx=0;idx<tot_permu;idx++,t=1){
         for (int i=0; i<no_of_ver; i++) {
             for (int j=0; j<dim; j++) {
-                distance[i][j]=clu_vertex[dim*pi[idx][i]+j]-b.clu_vertex[dim*i+j];
+                distance[i][j]=clu_vertex[dim*i+j]-b.clu_vertex[dim*pi[idx][i]+j];
                 int int_test=distance[i][j];
                 if (distance[i][j]!=int_test)
                     t=0;
@@ -369,11 +417,11 @@ bool Cluster::compare_transl_dist(Cluster b){
             return t;
         }
     }
-    
+    for(int i=0;i<no_of_ver;i++){
+        delete[] distance[i];
+    }
     delete []distance;
     return t=0;
-    
-    return t;
 };
 
 void find_orbital_space(Cluster* clu, int no_of_ver, int no_of_rep, int no_of_sym){
@@ -400,25 +448,29 @@ void find_isotromy_pi(Cluster* clu_rep,Cluster* clu_sym,int no_of_ver, int no_of
     for (int idx=0,k=0; idx<no_of_rep; idx++,k=0) {
         for (int i=0; i<no_of_sym; i++) {
             if (clu_sym[idx*no_of_sym+i].compare_transl_dist(clu_rep[idx])) {
-                //                for (int k=0; k<no_of_ver; k++) {
-                //                    cout<<clu_sym[idx*no_of_sym+i].permu[k]<<'\t';
-                //                }cout<<endl;
+//                                for (int k=0; k<no_of_ver; k++) {
+//                                    cout<<clu_sym[idx*no_of_sym+i].permu[k]<<'\t';
+//                                }cout<<endl;
                 //                k++;
             }
         }//cout<<k<<endl;
     }
 }
 
-Cluster* imp_clu_enu(int no_of_imp,int no_of_ver,int no_of_rep, Cluster* clu_rep,int & tot){
+Cluster* imp_clu_enu(int no_of_imp,int no_of_ver,int no_of_rep, Cluster* clu_rep,int & tot
+                     ){
     int **com=combination_fixed_total(no_of_imp,no_of_ver);
     tot=factorial(no_of_imp+no_of_ver-1)/(factorial(no_of_imp)*factorial(no_of_ver-1));
     
     Cluster* imp_pair=Cluster::create(no_of_rep*tot, no_of_ver+no_of_imp);
     
     for (int idx=0; idx<no_of_rep; idx++) {
-        for (int i=0; i<tot; i++) {
+        for (int i=0; i<tot;i++) {
             imp_pair[idx*tot+i].clu_imp_enum(clu_rep[idx], no_of_imp, com[i]);
         }
+    }
+    for(int i=0;i<tot;i++){
+        delete[] com[i];
     }
     delete []com;
     return imp_pair;
@@ -447,9 +499,10 @@ Cluster* delete_dup(Cluster* a, int no_of_rep,int& no_of_dist, float ***linear_t
     return tmp;
 }
 
-void cluster_rep(int** arr_rep_no,Cluster **clusters_rep,int no_of_ver,float***linear_tran, float***transl)
+void cluster_rep(int** arr_rep_no,Cluster **clusters_rep,int no_of_ver,float***linear_tran, float***transl, float cut_off[])
 {
-    for(int ver=1;ver<=no_of_ver;ver++){
+    for(int ver=1;ver<=no_of_ver;ver++)
+    {
         int prop_no=arr_rep_no[ver][0];
         int imp_prop_no=prop_no;
         int tot=0;
@@ -458,8 +511,12 @@ void cluster_rep(int** arr_rep_no,Cluster **clusters_rep,int no_of_ver,float***l
             int no_ver=ver-no_of_imp;
             int multip=0;
             int no_of_dist=0;
-            tot+=arr_rep_no[no_ver][0];
-            
+            for(int j=0;j<arr_rep_no[no_ver][0];j++){
+                if (clusters_rep[no_ver][j].clu_dist<=cut_off[no_of_ver]) {
+                    tot++;
+                }
+            }
+            //tot+=arr_rep_no[no_ver][0];
             Cluster* imp=imp_clu_enu(no_of_imp, no_ver, tot,clusters_rep[no_ver], multip);
             Cluster* imp_clu_rep=delete_dup(imp, tot*multip,no_of_dist,linear_tran, transl);
             arr_rep_no[ver][i]=no_of_dist;
@@ -500,6 +557,15 @@ int* find_isotromy(Cluster* clu_sym,int st_p, int &no_os, int num_of_sym, int id
     for (int i=0; i<num_of_sym; i++) {
         if (clu_sym[st_p+i].isotromy==id) {
             no_os++;
+//            cout<<"this is "<<i<<'\t';
+//            for(int k=0;k<clu_sym[st_p+i].no_of_ver;k++)
+//                cout<<clu_sym[st_p+i].permu[k]<<'\t';
+//            cout<<endl;
+//            for(int k=0;k<power(3,clu_sym[st_p+i].no_of_ver);k++){
+//                for(int j=0;j<power(3,clu_sym[st_p+i].no_of_ver);j++)
+//                    cout<<clu_sym[st_p+i].gamma[(k*power(3,clu_sym[st_p+i].no_of_ver))+j]<<'\t';
+//                cout<<endl;
+//            }cout<<endl;
         }
     }
     int *arr =new int[no_os];
@@ -533,6 +599,12 @@ void isotromy_gamma(Cluster* clu_sym, int no_of_sym, int tot_no, int id_idx){
                 }
             }
         }
+//        for(int u=0;u<no_os*tensor_dim;u++){
+//            for(int i=0;i<tensor_dim;i++){
+//                cout<<temp[u*tensor_dim+i]<<'\t';
+//            }cout<<endl;
+//        }
+        //for(int i=0;i<no_os;i++)
         if (clu_sym[clu+arr[0]].imp) {
             int k=clu_sym[clu+arr[0]].imp_ga_mulip;
             int row_imp=tensor_dim*(k+no_os);
@@ -558,10 +630,19 @@ void isotromy_gamma(Cluster* clu_sym, int no_of_sym, int tot_no, int id_idx){
             delete[] temp_imp;
         }
         else{
+            //cout<<no_os<<endl;;
+            //cout<<"proper"<<endl;
             clu_sym[clu+arr[0]].bmat=new float[tot];
             for (int i=0; i<tot; i++) {
                 clu_sym[clu+arr[0]].bmat[i]=temp[i];
             }
+//            if (clu_sym[clu+arr[0]].no_of_ver==3) {
+//                for(int i=0;i<(tot/tensor_dim);i++){
+//                    for(int j=0;j<tensor_dim;j++){
+//                        cout<<clu_sym[clu+arr[0]].bmat[i*tensor_dim+j]<<'\t';
+//                    }cout<<endl;
+//                }cout<<endl;
+//            }
         }
         delete []temp;
     }
@@ -579,12 +660,18 @@ float* Cluster::find_red_fct(int& col){
     int ten_dim=power(3, no_of_ver);
     if (imp) {
         cout<<"imp"<<endl;
+        cout<<imp_ga_mulip<<endl;
         int tot=(ten_dim*(num_in_os+imp_ga_mulip))*ten_dim;
         double* b_out_tmp=new double[tot];
         double*v= new double[tot];
         for (int i=0; i<tot; i++) {
             v[i]=bmat[i];
         }
+//        for (int i=0; i<ten_dim*(1+imp_ga_mulip); i++) {
+//            for (int j=0; j<ten_dim; j++) {
+//                cout<<bmat[i]<<'\t';
+//            }cout<<endl;
+//        }
         int row=(num_in_os+imp_ga_mulip)*ten_dim;
         //cout<<row<<endl;
         col=nullspace(row, ten_dim, v, b_out_tmp);
@@ -595,20 +682,31 @@ float* Cluster::find_red_fct(int& col){
                 red_fct[i*col+j]=b_out_tmp[i*col+j];
             }
         }
-        //print_max(red_fct, ten_dim, col);
-        cout<<endl;
+        print_max(red_fct, ten_dim, col);
+        //cout<<endl;
+
         delete []b_out_tmp;
         delete []v;
         return red_fct;
+
     }
     else{
         cout<<"prop"<<endl;
         int tot=(ten_dim*num_in_os)*ten_dim;
+        if(no_of_ver==3)
+            cout<<num_in_os<<endl;
         double* b_out_tmp=new double[tot];
         double*v= new double[tot];
         for (int i=0; i<tot; i++) {
             v[i]=bmat[i];
         }
+//        if (no_of_ver==3) {
+//            for(int i=0;i<ten_dim*num_in_os;i++){
+//                for(int j=0;j<ten_dim;j++)
+//                    cout<<v[ten_dim*i+j]<<'\t';
+//                cout<<endl;
+//            }cout<<endl<<endl;;
+//        }
         col=nullspace(ten_dim*num_in_os, ten_dim, v, b_out_tmp);
         red_fct=new float[ten_dim*col];
         int row=ten_dim;
@@ -619,12 +717,12 @@ float* Cluster::find_red_fct(int& col){
                 red_fct[i*col+j]=b_out_tmp[i*col+j];
             }
         }
-        //print_max(red_fct, row, col);
+        print_max(red_fct, row, col);
         delete []b_out_tmp;
         delete []v;
         return red_fct;
-    }
 
+    }
 }
 float* gamma_cal(float **linear_trans, int* permu, int no_of_ver){
     int tensor_dim=power(3, no_of_ver);
@@ -646,6 +744,9 @@ float* gamma_cal(float **linear_trans, int* permu, int no_of_ver){
             }
             gamma[i*tensor_dim+j]=tmp;
         }
+    }
+    for(int i=0;i<tensor_dim;i++){
+        delete [] tensor[i];
     }
     delete []tensor;
     return gamma;
@@ -689,7 +790,10 @@ float* transl_invariant_conversion(Cluster rep, Cluster& aa, float***linear_tran
             igp=rep.no_of_sym;
             aa.no_of_sym=igp;
             aa.no_of_ver=no_of_ver;
-            aa.permu=pi[idx];
+            for(int i=0;i<no_of_ver;i++){
+                aa.permu[i]=pi[idx][i];
+            }
+            //aa.permu=pi[idx];
             aa.gamma_cal(linear_trans);
 //            //cout<<igp<<endl;
 //            if(igp==10)
@@ -698,10 +802,59 @@ float* transl_invariant_conversion(Cluster rep, Cluster& aa, float***linear_tran
 //                    cout<<aa.gamma[i*9+j]<<'\t';
 //                cout<<endl;
 //            }
+            for(int i=0;i<no_of_ver;i++){
+                delete distance[i];
+            }
+            delete [] distance;
+            for(int i=0;i<tot_permu;i++){
+                delete [] pi[i];
+            }
+            delete [] pi;
             return aa.gamma;
         }
     }
+    for(int i=0;i<no_of_ver;i++){
+        delete distance[i];
+    }
+    delete [] distance;
+    for(int i=0;i<tot_permu;i++){
+        delete [] pi[i];
+    }
+    delete [] pi;
     return NULL;
+}
+
+Cluster* find_all_clu(Cluster prim,int** all_atom,int num_atom, int no_of_ver, int atom_type,int&tot){
+    tot=power(num_atom,no_of_ver-1);
+    Cluster* all_clu=Cluster::create(tot,no_of_ver);
+    int **tensor=new int*[tot];
+    for (int i=0; i<tot; i++) {
+        tensor[i]=new int[no_of_ver-1];
+    }
+    find_np(tensor, tot, num_atom, no_of_ver-1);
+    for(int i=0;i<tot;i++){
+        for (int j=0; j<no_of_ver-1; j++) {
+            cout<<tensor[i][j]<<'\t';
+        }cout<<endl;
+    }
+    for (int i=0; i<tot; i++) {
+        int* clu=new int[no_of_ver*4];
+        for (int j=0; j<no_of_ver; j++) {
+            if(j==0){
+                for (int k=0; k<4; k++) {
+                    clu[k]=prim.clu_vertex_atom[atom_type*4+k];
+                }
+            }
+            else {
+                for (int k=0; k<4; k++) {
+                    clu[j*4+k]=all_atom[tensor[i][j-1]][k];
+                }
+            }
+        }
+        all_clu[i].map_data_atom(clu,no_of_ver);
+        delete[] clu;
+    }
+    return all_clu;
 }
 
 

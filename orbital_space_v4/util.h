@@ -8,15 +8,50 @@
 
 #ifndef orbital_space_v4_util_h
 #define orbital_space_v4_util_h
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include </usr/include/Eigen/Eigen> // works ok
+#include </Users/kuoyusheng/Desktop/Eigen/Eigen> // works ok
 #include "null_space.h"
 #include "clusters.h"
 using namespace std;
 using Eigen::MatrixXd;
+float* Matrix_product(int row1, int col1, int row2, int col2, float* mat1, float* mat2){
+    if(col1!=row2){
+        cout<<"The row and col is not match"<<endl;
+        return NULL;
+    }
+    float* mat=new float[row1*col2];
+    for(int i=0;i<row1*col2;i++){
+        mat[i]=0;
+    }
+    for (int row_idx=0; row_idx<row1; row_idx++) {
+        for(int col_idx=0;col_idx<col2;col_idx++){
+            for(int idx=0;idx<col1;idx++){
+                float b=mat1[row_idx*col1+idx];
+                float c=mat2[idx*col2+col_idx];
+                if(abs(b)<1e-5)
+                    b=0;
+                if(abs(c)<1e-5)
+                    c=0;
+                //cout<<"row:"<<mat1[(row_idx*col1)+idx]<<'\t';
+                //cout<<"col:"<<mat2[(idx*col2)+col_idx]<<'\t';
+                float a=b*c;
+                if (abs(a)<1e-5){
+                    a=0;
+                }
+                //cout<<a<<" "<<b<<" "<<c<<endl;
+                //cout<<"prod"<<a<<"\t";
+                mat[row_idx*col2+col_idx]+=a;
+                if(abs(mat[row_idx*col2+col_idx])<1e-3)
+                    mat[row_idx*col2+col_idx]=0;
+            }//cout<<"sum"<<mat[row_idx*col2+col_idx]<<endl;
+        }//cout<<endl;
+    }//cout<<endl;
+    return mat;
+}
 int power(int val, int pow){
     int result=1;
     if(pow==0)
@@ -31,9 +66,10 @@ int power(int val, int pow){
 void digit_combination(int dim,int i,int arr[],int digit)
 {
     if (dim / 3 != 0) {
-        digit_combination((dim / 3),i+1,arr,digit);
+        digit_combination((dim/3),i+1,arr,digit);
     }
     arr[digit-1-i]=(dim % 3);
+    
 }
 
 
@@ -50,9 +86,9 @@ void digit_combination_2(int dim,int i,int arr[],int digit, int cut_off)
     arr[digit-1-i]=(dim % cut_off);
 }
 
-void find_np(int **tensor,int tensor_dim, int cut_off){
+void find_np(int **tensor,int tensor_dim, int cut_off, int digit){
     for (int i=0; i<tensor_dim; i++) {
-        digit_combination_2(i,0,tensor[i],3, cut_off);
+        digit_combination_2(i,0,tensor[i],digit, cut_off);
     }
 }
 
